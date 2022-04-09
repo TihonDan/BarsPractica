@@ -6,12 +6,14 @@ using System.Threading;
 namespace barsTest
 {
     class Program
-    {   
+    {
+        //
+        //
         public static void Main()   
         {
             DummyRequestHandler dummy = new DummyRequestHandler();
             Console.WriteLine("Хотите начать: Да/Нет");
-            
+            var contains = new Dictionary<string, string>();
             var command = Console.ReadLine();
 
             while (command != "Нет")
@@ -36,9 +38,8 @@ namespace barsTest
                 }
 
                 //Console.ForegroundColor = ConsoleColor.Cyan;
-                //Console.Write($"Было отправлено сообщение: {mess}. Присвоено идентификатор: {dummy.nb}");
-
-                ThreadPool.QueueUserWorkItem((o) => { dummy.HandleRequest(mess, massArg); });
+                //Console.Write($"Было отправлено сообщение: {mess}. Присвоено идентификатор: {pr.SomeMethod(mess, massArg)}");
+                ThreadPool.QueueUserWorkItem((o) => { dummy.HandleRequest(mess, massArg); } );
 
 
             }
@@ -55,28 +56,31 @@ namespace barsTest
         {
             public string nb { get; set; }
             public string nb1 { get; set; }
+
+            public Dictionary<string, string> cont = new Dictionary<string, string>();
             public string HandleRequest(string message, string[] arguments)
             {
-                var contains = new Dictionary<string, string>();
                 nb = Guid.NewGuid().ToString("D");
                 nb1 = Guid.NewGuid().ToString("D");
 
-                contains.Add(nb, message);
+                if(!message.Contains("упади")) cont.Add(nb, message);
 
                 try
                 {
+                    Thread.Sleep(1000);
                     if (message.Contains("упади"))
                     {
-                        Thread.Sleep(1000);
                         throw new Exception("Я упал так как ты и просил");
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    foreach (var temp in contains)
+                    foreach (var temp in cont)
                     {
-                        Console.WriteLine($"Сообщение {nb} получило ответ");
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.WriteLine($"Сообщение {temp.Key} получило ответ {nb1}");
                     }
+                    Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"Сообщение {nb} упало с ошибкой {ex.Message}");
                 }
                 return nb;
