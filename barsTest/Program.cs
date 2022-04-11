@@ -7,13 +7,11 @@ namespace barsTest
 {
     class Program
     {
-        //
-        //
         public static void Main()   
         {
-            DummyRequestHandler dummy = new DummyRequestHandler();
+            SomeClass cl = new SomeClass();
+            Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Хотите начать: Да/Нет");
-            var contains = new Dictionary<string, string>();
             var command = Console.ReadLine();
 
             while (command != "Нет")
@@ -39,52 +37,72 @@ namespace barsTest
 
                 //Console.ForegroundColor = ConsoleColor.Cyan;
                 //Console.Write($"Было отправлено сообщение: {mess}. Присвоено идентификатор: {pr.SomeMethod(mess, massArg)}");
-                ThreadPool.QueueUserWorkItem((o) => { dummy.HandleRequest(mess, massArg); } );
+                ThreadPool.QueueUserWorkItem((o) => { cl.SomeMethod(mess, massArg); } );
 
 
             }
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Программа завершена");
         }
+    }
+    public interface IRequestHandler
+    {
+        string HandleRequest(string message, string[] arguments);
+    }
 
-        public interface IRequestHandler
+    public class DummyRequestHandler : IRequestHandler
+    {
+        public string HandleRequest(string message, string[] arguments)
         {
-            string HandleRequest(string message, string[] arguments);
-        }
-
-        public class DummyRequestHandler : IRequestHandler
-        {
-            public string nb { get; set; }
-            public string nb1 { get; set; }
-
-            public Dictionary<string, string> cont = new Dictionary<string, string>();
-            public string HandleRequest(string message, string[] arguments)
+            Thread.Sleep(10_000);
+            if (message.Contains("упади"))
             {
-                nb = Guid.NewGuid().ToString("D");
-                nb1 = Guid.NewGuid().ToString("D");
+                throw new Exception("Я упал, как сам просил");
+            }
+            return Guid.NewGuid().ToString("D");
+        }
+    }
+    public class SomeClass
+    {
+        string nb { get; set; }
+        string nb1 { get; set; }
 
-                if(!message.Contains("упади")) cont.Add(nb, message);
+        Dictionary<string, string> cont = new Dictionary<string, string>();
+        List<string> keys = new List<string>();
 
-                try
+        public void SomeMethod(string mess, string[] args)
+        {
+            DummyRequestHandler dummy = new DummyRequestHandler();
+
+            nb = Guid.NewGuid().ToString("D");
+            nb1 = Guid.NewGuid().ToString("D");
+
+            if (!mess.Contains("упади"))
+            {
+                cont.Add(nb1, mess);
+                keys.Add(nb);
+            }
+
+            try
+            {
+                dummy.HandleRequest(mess, args);
+            }
+            catch (Exception ex)
+            {
+                foreach (var temp in cont)
                 {
-                    Thread.Sleep(1000);
-                    if (message.Contains("упади"))
-                    {
-                        throw new Exception("Я упал так как ты и просил");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    foreach (var temp in cont)
+                    foreach(var _key in keys)
                     {
                         Console.ForegroundColor = ConsoleColor.Cyan;
-                        Console.WriteLine($"Сообщение {temp.Key} получило ответ {nb1}");
+                        Console.WriteLine($"Сообщение {temp.Key} получило ответ {_key}");
+                        break;
                     }
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"Сообщение {nb} упало с ошибкой {ex.Message}");
+                    continue;
                 }
-                return nb;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Сообщение: {nb} упало с ошибкой: {ex.Message}");
             }
+
         }
     }
 }
